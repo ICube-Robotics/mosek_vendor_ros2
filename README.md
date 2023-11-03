@@ -1,6 +1,12 @@
 # mosek_vendor_ros2
 Vendor package to use the solver MOSEK in ROS2 applications.
 
+Mosek version: 10.1.16.
+
+***Tested with a Humble ROS distribution only (Ubuntu 22.04 LTS)***
+
+[![Build tests](../../actions/workflows/ci.yaml/badge.svg?branch=main)](../../actions/workflows/ci.yaml?query=branch:main)
+
 ## Installation
 
 1) Install the package
