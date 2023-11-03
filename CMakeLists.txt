@@ -24,7 +24,6 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(PkgConfig REQUIRED)
 include(FetchContent)
 include(ExternalProject)
 
@@ -56,25 +55,12 @@ set(MOSEK_LIBDIR ${MOSEK_SRC_LINUX}/bin)
 # Build the C++ API (Fusion)
 #-------------------------------
 
-# message("Building the C++ API (Fusion)")
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 execute_process(
   WORKING_DIRECTORY ${MOSEK_SRCDIR}
   COMMAND make install
 )
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-#[==[
-set(CMAKE_VERBOSE_MAKEFILE ON)
-
-ExternalProject_Add(fusion_lib
-	SOURCE_DIR ${MOSEK_SRCDIR}
-  # BINARY_DIR ${MOSEK_LIBDIR}
-  INSTALL_DIR ${MOSEK_LIBDIR}
-	CONFIGURE_COMMAND ""
-	BUILD_IN_SOURCE ON  # use the existing Makefile
-)
-#]==]
-
 # Setup vendor library
 #----------------------
 
@@ -107,18 +93,16 @@ endif()
 
 install(
   DIRECTORY ${MOSEK_HEADERDIR}/
-  DESTINATION ./include
+  DESTINATION ./include/${PROJECT_NAME}
 )
 
 install(
   FILES ${MOSEK_LIBDIR}/libmosek64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
   DESTINATION lib
-  # RENAME libdhd.so.${VERSION_SDK_MAJOR}
 )
 install(
   FILES ${MOSEK_LIBDIR}/libfusion64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
   DESTINATION lib
-  # RENAME libdrd.so.${VERSION_SDK_MAJOR}
 )
 install(
   TARGETS ${PROJECT_NAME}
