@@ -73,8 +73,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 target_link_libraries(
   ${PROJECT_NAME}
   INTERFACE
-    ${CMAKE_INSTALL_PREFIX}/lib/libmosek64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
-    ${CMAKE_INSTALL_PREFIX}/lib/libfusion64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
+    ${CMAKE_INSTALL_PREFIX}/lib/libmosek64.so
+    ${CMAKE_INSTALL_PREFIX}/lib/libfusion64.so
 )
 
 # Testing
@@ -103,10 +103,12 @@ install(
 install(
   FILES ${MOSEK_LIBDIR}/libmosek64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
   DESTINATION lib
+  RENAME libmosek64.so
 )
 install(
   FILES ${MOSEK_LIBDIR}/libfusion64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
   DESTINATION lib
+  RENAME libfusion64.so
 )
 install(
   TARGETS ${PROJECT_NAME}
