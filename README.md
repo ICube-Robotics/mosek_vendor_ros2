@@ -5,7 +5,7 @@ Mosek version: 10.1.16.
 
 ***Tested with a Humble ROS distribution only (Ubuntu 22.04 LTS)***
 
-[![Build tests](../../actions/workflows/ci.yaml/badge.svg?branch=main)](../../actions/workflows/ci.yaml?query=branch:main)
+[![Build tests](../../actions/workflows/ci.yml/badge.svg?branch=main)](../../actions/workflows/ci.yml?query=branch:main)
 
 ## Installation
 
