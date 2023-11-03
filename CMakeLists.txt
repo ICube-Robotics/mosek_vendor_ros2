@@ -35,6 +35,7 @@ include(ExternalProject)
 fetchcontent_declare(
   mosek_binaries
   URL      https://download.mosek.com/stable/${MOSEK_VERSION}/mosektoolslinuxaarch64.tar.bz2
+  INSTALL_COMMAND ""
 )
 fetchcontent_makeavailable(mosek_binaries)
 
@@ -57,17 +58,35 @@ set(MOSEK_LIBDIR ${MOSEK_SRC_LINUX}/bin)
 # Build the C++ API (Fusion)
 #-------------------------------
 
-#[==[
-find_program(MAKE_EXECUTABLE NAMES make REQUIRED)
-SET(CMAKE_EXE_LINKER_FLAGS 
-          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,${MOSEK_LIBDIR}")
+message("Building the C++ API (Fusion)")
+execute_process(
+  WORKING_DIRECTORY ${MOSEK_SRCDIR}
+  COMMAND make install
+)
 
+#[==[
+set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_INSTALL_RPATH ${MOSEK_LIBDIR})
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-execute_process(COMMAND make install -j -C ${MOSEK_SRCDIR})
+
+list(APPEND CMAKE_PREFIX_PATH ${MOSEK_LIBDIR})
+
+# list( APPEND CMAKE_INSTALL_RPATH ${MOSEK_LIBDIR} )
+ExternalProject_Add(fusion_lib
+	SOURCE_DIR ${MOSEK_SRCDIR}
+  # BINARY_DIR ${MOSEK_LIBDIR}
+  CMAKE_ARGS -DCMAKE_CXX_FLAGS:STRING=LDFLAGS=-L${MOSEK_LIBDIR}
+  INSTALL_DIR ${MOSEK_LIBDIR}
+	CONFIGURE_COMMAND ""
+  CMAKE_ARGS 
+	BUILD_IN_SOURCE ON  # use the existing Makefile
+)
+#]==]
 
 # Setup vendor library
 #----------------------
+
+#[==[
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
   $<BUILD_INTERFACE:${fd_sdk_binaries_SOURCE_DIR}/include>
