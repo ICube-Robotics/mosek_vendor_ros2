@@ -23,9 +23,6 @@ if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(libusb REQUIRED libusb-1.0)
-
 find_package(ament_cmake REQUIRED)
 include(FetchContent)
 include(ExternalProject)
@@ -34,7 +31,8 @@ include(ExternalProject)
 #---------------------------------
 fetchcontent_declare(
   mosek_binaries
-  URL      https://download.mosek.com/stable/${MOSEK_VERSION}/mosektoolslinuxaarch64.tar.bz2
+  URL      https://download.mosek.com/stable/${MOSEK_VERSION}/mosektoolslinux64x86.tar.bz2
+  INSTALL_COMMAND ""
 )
 fetchcontent_makeavailable(mosek_binaries)
 
@@ -46,7 +44,7 @@ list(GET VERSION_MOSEK_LIST 1 VERSION_MOSEK_MINOR)
 
 set(
   MOSEK_SRC_LINUX
-  ${mosek_binaries_SOURCE_DIR}/${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}/tools/platform/linuxaarch64/
+  ${mosek_binaries_SOURCE_DIR}/${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}/tools/platform/linux64x86/
 )
 
 set(MOSEK_HEADERDIR ${MOSEK_SRC_LINUX}/h)
@@ -57,29 +55,27 @@ set(MOSEK_LIBDIR ${MOSEK_SRC_LINUX}/bin)
 # Build the C++ API (Fusion)
 #-------------------------------
 
-#[==[
-find_program(MAKE_EXECUTABLE NAMES make REQUIRED)
-SET(CMAKE_EXE_LINKER_FLAGS 
-          "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath -Wl,${MOSEK_LIBDIR}")
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(CMAKE_INSTALL_RPATH ${MOSEK_LIBDIR})
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-execute_process(COMMAND make install -j -C ${MOSEK_SRCDIR})
-
+execute_process(
+  WORKING_DIRECTORY ${MOSEK_SRCDIR}
+  COMMAND make install
+)
 # Setup vendor library
 #----------------------
+
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
-  $<BUILD_INTERFACE:${fd_sdk_binaries_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${MOSEK_HEADERDIR}>
   $<INSTALL_INTERFACE:include>
 )
+
 target_link_libraries(
-  ${PROJECT_NAME} INTERFACE
-  ${CMAKE_INSTALL_PREFIX}/lib/libdhd.so.${VERSION_SDK_MAJOR}
-  ${CMAKE_INSTALL_PREFIX}/lib/libdrd.so.${VERSION_SDK_MAJOR}
-  ${libusb-1.0_LIBRARIES}
+  ${PROJECT_NAME}
+  INTERFACE
+    ${CMAKE_INSTALL_PREFIX}/lib/libmosek64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
+    ${CMAKE_INSTALL_PREFIX}/lib/libfusion64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
 )
-#]==]
 
 # Testing
 #----------
@@ -94,5 +90,28 @@ endif()
 
 # Install
 #----------
+
+install(
+  DIRECTORY ${MOSEK_HEADERDIR}/
+  DESTINATION ./include/${PROJECT_NAME}
+)
+
+install(
+  FILES ${MOSEK_LIBDIR}/libmosek64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
+  DESTINATION lib
+)
+install(
+  FILES ${MOSEK_LIBDIR}/libfusion64.so.${VERSION_MOSEK_MAJOR}.${VERSION_MOSEK_MINOR}
+  DESTINATION lib
+)
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 ament_package()
